@@ -81,19 +81,24 @@ function Cuti() {
   const setujuCutiFunc = (idcuti = null) => {
     getDataCutiByID(idcuti);
 
-    if (iduser != datacutival[0].IDDISETUJUI) {
-      if (datacutival[0].STATUSDIKET === null) {
+    console.log(datacutival[0].IDDISETUJUI);
+
+    if (iduser == datacutival[0].IDDISETUJUI) {
+      if (
+        datacutival[0].STATUSDIKET === null ||
+        datacutival[0].STATUSDIKET === ""
+      ) {
         Alert.alert(
           "Error",
-          "Pengajuan cuti belum disetujui oleh pihak diketahui"
+          "Pengajuan cuti belum diterima oleh pihak diketahui"
         );
         return;
       }
 
-      if (datacutival[0].STATUSDIKET === "Tidak Disetujui") {
+      if (datacutival[0].STATUSDIKET === "Tidak Diterima") {
         Alert.alert(
           "Error",
-          "Pengajuan cuti tidak disetujui oleh pihak diketahui"
+          "Pengajuan cuti tidak diterima oleh pihak diketahui"
         );
         return;
       }
@@ -102,35 +107,32 @@ function Cuti() {
         idcuti,
         "disetujui",
         datacutival[0].STATUSDIKET,
-        "Disetujui",
-        "Disetujui"
+        "Diterima",
+        "Diterima"
       );
+      getRiwayatCuti();
 
       sendNotifToMe(datacutival[0].IDUSELOGIN, "disetujui");
-    } else if (iduser != datacutival[0].IDDIKETAHUI) {
-      updateSetujuCutiFunc(
-        idcuti,
-        "disetujui",
-        "Disetujui",
-        datacutival[0].STATUSDISET,
-        "Disetuji Pihak Diketahui"
-      );
+    } else if (iduser == datacutival[0].IDDIKETAHUI) {
+      updateSetujuCutiFunc(idcuti, "disetujui", "Diterima", "", "Diterima 1");
+      getRiwayatCuti();
     } else {
       Alert.alert(
         "Error",
-        "Tidak memiliki hak akses untuk menyetujui pengajuan cuti ini"
+        "Tidak memiliki hak akses untuk menerima pengajuan cuti ini"
       );
       return;
     }
-
-    getRiwayatCuti();
   };
 
   const TidaksetujuCutiFunc = (idcuti = null) => {
     getDataCutiByID(idcuti);
 
-    if (iduser != datacutival[0].IDDISETUJUI) {
-      if (datacutival[0].STATUSDIKET === null) {
+    if (iduser == datacutival[0].IDDISETUJUI) {
+      if (
+        datacutival[0].STATUSDIKET === null ||
+        datacutival[0].STATUSDIKET === ""
+      ) {
         Alert.alert(
           "Error",
           "Pengajuan cuti belum di tanggapi oleh pihak diketahui"
@@ -142,32 +144,34 @@ function Cuti() {
         idcuti,
         "tidakdisetujui",
         datacutival[0].STATUSDIKET,
-        "Tidak Disetujui",
-        "Tidak Disetujui"
+        "Tidak Diterima",
+        "Tidak Diterima"
       );
 
       sendNotifToMe(datacutival[0].IDUSELOGIN, "tidaksetuju");
-    } else if (iduser != datacutival[0].IDDIKETAHUI) {
+      getRiwayatCuti();
+    } else if (iduser == datacutival[0].IDDIKETAHUI) {
       updateSetujuCutiFunc(
         idcuti,
         "tidakdisetujui",
-        "Tidak Disetujui",
-        datacutival[0].STATUSDISET,
-        "Tidak Disetujui"
+        "Tidak Diterima",
+        "Tidak Diterima",
+        "Tidak Diterima"
       );
+      sendNotifToMe(datacutival[0].IDUSELOGIN, "tidaksetuju");
+      console.log(datacutival[0].IDUSELOGIN);
+      getRiwayatCuti();
     } else {
       Alert.alert(
         "Error",
-        "Tidak memiliki hak akses untuk menyetujui pengajuan cuti ini"
+        "Tidak memiliki hak akses untuk menerima pengajuan cuti ini"
       );
       return;
     }
-
-    getRiwayatCuti();
   };
 
   const hapusCutiAct = (idcuti = null) => {
-    Alert.alert("Warning Warung", "Ingin membatalkan pengajuan cuti?", [
+    Alert.alert("Warning", "Ingin membatalkan pengajuan cuti?", [
       {
         text: "Jangan Batalkan",
         style: "cancel",
@@ -177,12 +181,22 @@ function Cuti() {
   };
 
   const setujuCutiAct = (idcuti = null) => {
-    Alert.alert("Warning", "Ingin menyetujui pengajuan cuti?", [
+    Alert.alert("Warning", "Ingin menerima pengajuan cuti?", [
       {
-        text: "Jangan Batalkan",
+        text: "Tutup",
         style: "cancel",
       },
-      { text: "Ya, Batalkan", onPress: () => setujuCutiFunc(idcuti) },
+      { text: "Ya, Terima", onPress: () => setujuCutiFunc(idcuti) },
+    ]);
+  };
+
+  const tidakSetujuCutiAct = (idcuti = null) => {
+    Alert.alert("Warning", "Ingin tidak menerima pengajuan cuti?", [
+      {
+        text: "Tutup",
+        style: "cancel",
+      },
+      { text: "Ya", onPress: () => TidaksetujuCutiFunc(idcuti) },
     ]);
   };
 
@@ -218,10 +232,7 @@ function Cuti() {
           </Text>
         </Link>
         <View style={{ padding: 15, marginTop: 4 }}>
-          <Text style={{ fontSize: 16, fontWeight: "bold" }}>
-            {" "}
-            Riwayat Cuti
-          </Text>
+          <Text style={{ fontSize: 16, fontWeight: "bold" }}> Cuti</Text>
         </View>
       </View>
 
@@ -327,6 +338,95 @@ function Cuti() {
                           textTransform: "capitalize",
                         }}
                       >
+                        Diket. : {item.namadiket}{" "}
+                        <Text
+                          style={{
+                            color: "#353535",
+                            fontSize: 12,
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {item.STATUSDIKET === null ||
+                          item.STATUSDIKET === "" ? (
+                            <FontAwesome
+                              size={14}
+                              name="clock-o"
+                              color="#353535"
+                            />
+                          ) : item.STATUSDIKET === "Tidak Diterima" ? (
+                            <FontAwesome
+                              size={14}
+                              name="times"
+                              color="#b61b1b"
+                            />
+                          ) : (
+                            <FontAwesome
+                              size={14}
+                              name="check"
+                              color="#3db61b"
+                            />
+                          )}
+                        </Text>
+                      </Text>
+                      <Text
+                        style={{
+                          color: "#353535",
+                          fontSize: 12,
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        Diset. : {item.namaset}{" "}
+                        <Text
+                          style={{
+                            color: "#353535",
+                            fontSize: 12,
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {item.STATUSDISET === null ||
+                          item.STATUSDISET === "" ? (
+                            <FontAwesome
+                              size={14}
+                              name="clock-o"
+                              color="#353535"
+                            />
+                          ) : item.STATUSDISET === "Tidak Diterima" ? (
+                            <FontAwesome
+                              size={14}
+                              name="times"
+                              color="#b61b1b"
+                            />
+                          ) : (
+                            <FontAwesome
+                              size={14}
+                              name="check"
+                              color="#3db61b"
+                            />
+                          )}
+                        </Text>
+                      </Text>
+                    </View>
+
+                    <View
+                      style={{
+                        padding: 5,
+                        borderRadius: 10,
+                        marginTop: 5,
+                        width: "auto",
+                        backgroundColor: "#e4e4e454",
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#353535",
+                          fontSize: 12,
+                          textTransform: "capitalize",
+                        }}
+                      >
                         Status : {item.STATUSCUTI}
                       </Text>
 
@@ -356,38 +456,77 @@ function Cuti() {
                               marginLeft: 5,
                             }}
                           >
-                            Batalkan Cuti
+                            Batal
                           </Text>
                         </TouchableOpacity>
                       ) : (
-                        <TouchableOpacity
-                          style={{ flexDirection: "row" }}
-                          onPress={() => setujuCutiAct(item.IDCUTI)}
-                        >
-                          <Text
-                            style={{
-                              color: "#353535",
-                              fontSize: 12,
-                              textTransform: "capitalize",
-                            }}
+                        ""
+                      )}
+
+                      {item.STATUSCUTI != "Diterima" &&
+                      item.STATUSCUTI != "Tidak Diterima" &&
+                      statusUser != "Umum" ? (
+                        <View style={{ flexDirection: "row" }}>
+                          <TouchableOpacity
+                            style={{ flexDirection: "row", marginRight: 10 }}
+                            onPress={() => tidakSetujuCutiAct(item.IDCUTI)}
                           >
-                            <FontAwesome
-                              size={14}
-                              name="check"
-                              color="#3db61b"
-                            />
-                          </Text>
-                          <Text
-                            style={{
-                              color: "#3db61b",
-                              fontSize: 12,
-                              textTransform: "capitalize",
-                              marginLeft: 5,
-                            }}
+                            <Text
+                              style={{
+                                color: "#353535",
+                                fontSize: 12,
+                                textTransform: "capitalize",
+                              }}
+                            >
+                              <FontAwesome
+                                size={14}
+                                name="times"
+                                color="#b61b1b"
+                              />
+                            </Text>
+                            <Text
+                              style={{
+                                color: "#b61b1b",
+                                fontSize: 12,
+                                textTransform: "capitalize",
+                                marginLeft: 5,
+                              }}
+                            >
+                              Tidak Diterima
+                            </Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                            style={{ flexDirection: "row" }}
+                            onPress={() => setujuCutiAct(item.IDCUTI)}
                           >
-                            Setujui Cuti
-                          </Text>
-                        </TouchableOpacity>
+                            <Text
+                              style={{
+                                color: "#353535",
+                                fontSize: 12,
+                                textTransform: "capitalize",
+                              }}
+                            >
+                              <FontAwesome
+                                size={14}
+                                name="check"
+                                color="#3db61b"
+                              />
+                            </Text>
+                            <Text
+                              style={{
+                                color: "#3db61b",
+                                fontSize: 12,
+                                textTransform: "capitalize",
+                                marginLeft: 5,
+                              }}
+                            >
+                              Terima
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      ) : (
+                        ""
                       )}
                     </View>
                   </View>

@@ -50,7 +50,7 @@ export const createCuti = async (IDUSER=0,TANGGALDARI=new Date(),TANGGALSAMPAI=n
       const response = await axios.put(
         `${baseUrl}updatecutidisetujui/${id}/${status}`,
         {
-          DIKETAHUI : statusdiket,
+          STATUSDIKET : statusdiket,
           STATUSDISET: statusdiset,
           STATUSCUTI: statuscuti,
        }

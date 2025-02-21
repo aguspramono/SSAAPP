@@ -16,7 +16,13 @@ import { Link, router } from "expo-router";
 import React, { useState, useCallback, useEffect } from "react";
 import moment from "moment";
 import { DatePicker } from "./../components/date-picker";
-import { riwayatcuti, deleteCuti, getCutiWhereID } from "./../function/cuti";
+import {
+  riwayatcuti,
+  deleteCuti,
+  getCutiWhereID,
+  updateSetujuCuti,
+  notiftome,
+} from "./../function/cuti";
 import { useShallow } from "zustand/react/shallow";
 import useLogin from "./../function/store/useUserLogin";
 
@@ -47,6 +53,26 @@ function Cuti() {
     setDatacuti(response.datacuti);
   }
 
+  async function updateSetujuCutiFunc(
+    idCuti = null,
+    status = "",
+    statusdiket = "",
+    statusdiset = "",
+    statuscuti = ""
+  ) {
+    await updateSetujuCuti(
+      idCuti,
+      status,
+      statusdiket,
+      statusdiset,
+      statuscuti
+    );
+  }
+
+  async function sendNotifToMe(idme = 0, status = "") {
+    await notiftome(idme, status);
+  }
+
   async function hapuscutifunc(idcuti = null) {
     await deleteCuti(idcuti);
     getRiwayatCuti();
@@ -55,15 +81,7 @@ function Cuti() {
   const setujuCutiFunc = (idcuti = null) => {
     getDataCutiByID(idcuti);
 
-    if (statusUser == "Super Admin") {
-      if (iduser != datacutival[0].IDDISETUJUI) {
-        Alert.alert(
-          "Error",
-          "Tidak memiliki hak akses untuk menyetujui pengajuan cuti ini"
-        );
-        return;
-      }
-
+    if (iduser != datacutival[0].IDDISETUJUI) {
       if (datacutival[0].STATUSDIKET === null) {
         Alert.alert(
           "Error",
@@ -72,8 +90,80 @@ function Cuti() {
         return;
       }
 
-      console.log(datacutival);
+      if (datacutival[0].STATUSDIKET === "Tidak Disetujui") {
+        Alert.alert(
+          "Error",
+          "Pengajuan cuti tidak disetujui oleh pihak diketahui"
+        );
+        return;
+      }
+
+      updateSetujuCutiFunc(
+        idcuti,
+        "disetujui",
+        datacutival[0].STATUSDIKET,
+        "Disetujui",
+        "Disetujui"
+      );
+
+      sendNotifToMe(datacutival[0].IDUSELOGIN, "disetujui");
+    } else if (iduser != datacutival[0].IDDIKETAHUI) {
+      updateSetujuCutiFunc(
+        idcuti,
+        "disetujui",
+        "Disetujui",
+        datacutival[0].STATUSDISET,
+        "Disetuji Pihak Diketahui"
+      );
+    } else {
+      Alert.alert(
+        "Error",
+        "Tidak memiliki hak akses untuk menyetujui pengajuan cuti ini"
+      );
+      return;
     }
+
+    getRiwayatCuti();
+  };
+
+  const TidaksetujuCutiFunc = (idcuti = null) => {
+    getDataCutiByID(idcuti);
+
+    if (iduser != datacutival[0].IDDISETUJUI) {
+      if (datacutival[0].STATUSDIKET === null) {
+        Alert.alert(
+          "Error",
+          "Pengajuan cuti belum di tanggapi oleh pihak diketahui"
+        );
+        return;
+      }
+
+      updateSetujuCutiFunc(
+        idcuti,
+        "tidakdisetujui",
+        datacutival[0].STATUSDIKET,
+        "Tidak Disetujui",
+        "Tidak Disetujui"
+      );
+
+      sendNotifToMe(datacutival[0].IDUSELOGIN, "tidaksetuju");
+    } else if (iduser != datacutival[0].IDDIKETAHUI) {
+      updateSetujuCutiFunc(
+        idcuti,
+        "tidakdisetujui",
+        "Tidak Disetujui",
+        datacutival[0].STATUSDISET,
+        "Tidak Disetujui"
+      );
+    } else {
+      Alert.alert(
+        "Error",
+        "Tidak memiliki hak akses untuk menyetujui pengajuan cuti ini"
+      );
+      return;
+    }
+
+    getRiwayatCuti();
   };
 
   const hapusCutiAct = (idcuti = null) => {

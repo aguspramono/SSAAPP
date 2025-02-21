@@ -44,6 +44,26 @@ export const createCuti = async (IDUSER=0,TANGGALDARI=new Date(),TANGGALSAMPAI=n
     }
   };
 
+
+  export const updateSetujuCuti = async (id =null,status="",statusdiket="",statusdiset="",statuscuti="") => {
+    try {
+      const response = await axios.put(
+        `${baseUrl}updatecutidisetujui/${id}/${status}`,
+        {
+          DIKETAHUI : statusdiket,
+          STATUSDISET: statusdiset,
+          STATUSCUTI: statuscuti,
+       }
+      );
+
+      return response.data;
+    } catch (error) {
+      return error;
+    }
+  };
+
+
+
   export const cekcuti = async (iduser =0) => {
     try {
       const response = await axios.get(
@@ -89,10 +109,10 @@ export const createCuti = async (IDUSER=0,TANGGALDARI=new Date(),TANGGALSAMPAI=n
     }
   };
 
-  export const notiftome = async (iduser =0) => {
+  export const notiftome = async (iduser =0,status="") => {
     try {
       const response = await axios.get(
-        `${baseUrl}notifcutime?id=${iduser}`,
+        `${baseUrl}notifcutime?id=${iduser}&status=${status}`,
         {
           headers: headers,
         }

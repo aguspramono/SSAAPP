@@ -100,8 +100,8 @@ function Tambahcuti() {
     );
   }
 
-  async function sendNotifToMe(idme = 0) {
-    await notiftome(idme);
+  async function sendNotifToMe(idme = 0, status = "") {
+    await notiftome(idme, status);
   }
 
   async function sendNotifToBigBoz(idket = "", idset = "", idkar = "") {
@@ -224,7 +224,7 @@ function Tambahcuti() {
       iduser
     );
 
-    sendNotifToMe(iduser);
+    sendNotifToMe(iduser, "pengajuan");
     sendNotifToBigBoz(selectedDiket, selectedDiset, userLink);
     Alert.alert("Sukses", "Pengajuan cuti telah terkirim");
     bersih();

@@ -167,7 +167,7 @@ function Cuti() {
   };
 
   const hapusCutiAct = (idcuti = null) => {
-    Alert.alert("Warning", "Ingin membatalkan pengajuan cuti?", [
+    Alert.alert("Warning Warung", "Ingin membatalkan pengajuan cuti?", [
       {
         text: "Jangan Batalkan",
         style: "cancel",

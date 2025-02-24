@@ -10,6 +10,7 @@ import {
   Pressable,
   TextInput,
   Alert,
+  Modal,
 } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Link, router } from "expo-router";
@@ -38,6 +39,15 @@ function Cuti() {
   const [riwayatcutidata, setRiwayatcutidata] = useState<any[]>([]);
   const [datacutival, setDatacuti] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [isModalFilterVisible, setIsModalFilterVisible] = useState(false);
+
+  const onFilterData = () => {
+    setIsModalFilterVisible(true);
+  };
+
+  const onModalFilterDataClose = () => {
+    setIsModalFilterVisible(false);
+  };
 
   async function getRiwayatCuti() {
     let response = await riwayatcuti("");
@@ -80,8 +90,6 @@ function Cuti() {
 
   const setujuCutiFunc = (idcuti = null) => {
     getDataCutiByID(idcuti);
-
-    console.log(datacutival[0].IDDISETUJUI);
 
     if (iduser == datacutival[0].IDDISETUJUI) {
       if (
@@ -238,12 +246,45 @@ function Cuti() {
 
       <View style={styles.containerFluid}>
         <View style={{ marginTop: 30 }}>
-          <TouchableOpacity style={{ flexDirection: "row" }}>
+          <TouchableOpacity
+            style={{ flexDirection: "row" }}
+            onPress={onFilterData}
+          >
             <Text style={{ marginRight: 5 }}>
               <FontAwesome size={18} name="filter" color="#3db61b" />
             </Text>
             <Text style={{ color: "#686a69" }}>Filter</Text>
           </TouchableOpacity>
+
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={isModalFilterVisible}
+            onRequestClose={() => {
+              Alert.alert("Modal has been closed.");
+              onModalFilterDataClose;
+            }}
+          >
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <View
+                  style={{
+                    backgroundColor: "#3db61b",
+                    width: "100%",
+                    alignItems: "center",
+                    paddingVertical: 10,
+                    marginBottom: 10,
+                  }}
+                >
+                  <Text style={{ color: "#ffffff" }}>Tutup</Text>
+                </View>
+                <Text>Hello World!</Text>
+                <Pressable onPress={() => setIsModalFilterVisible(false)}>
+                  <Text>Hide Modal</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
 
           <ScrollView
             style={{ marginTop: 10, marginBottom: 90 }}
@@ -564,7 +605,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f1f4ff",
   },
-
+  centeredView: {
+    flex: 1,
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+  },
+  modalView: {
+    //margin: 20,
+    backgroundColor: "#ffffff",
+    paddingBottom: 15,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
   containerFluid: {
     paddingHorizontal: 20,
     marginBottom: 65,

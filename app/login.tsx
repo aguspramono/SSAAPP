@@ -112,8 +112,8 @@ function Login() {
 
   const buttonLogin = () => {
     setLoading(true);
+    logProc();
     setTimeout(() => {
-      logProc();
       setLoading(false);
     }, 2000);
   };

@@ -17,6 +17,8 @@ import { Link, router } from "expo-router";
 import React, { useState, useCallback, useEffect } from "react";
 import moment from "moment";
 import { DatePicker } from "./../components/date-picker";
+import { SelectList } from "react-native-dropdown-select-list";
+import { dataPegawai } from "./../function/pegawaiApi";
 import {
   riwayatcuti,
   deleteCuti,
@@ -28,6 +30,36 @@ import { useShallow } from "zustand/react/shallow";
 import useLogin from "./../function/store/useUserLogin";
 
 function Cuti() {
+  var dateY = new Date();
+
+  const [date, setDate] = useState(
+    new Date(dateY.getFullYear(), dateY.getMonth(), 1)
+  );
+  const [dateTo, setDateTo] = useState(
+    new Date(dateY.getFullYear(), dateY.getMonth() + 1, 0)
+  );
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showPickerToDate, setShowPickerToDate] = useState(false);
+  const [pegawai, setPegawai] = useState([]);
+  const [riwayatcutidata, setRiwayatcutidata] = useState<any[]>([]);
+  const [datacutival, setDatacuti] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [isModalFilterVisible, setIsModalFilterVisible] = useState(false);
+  const [selectIDPegawai, setSelectIDPegawai] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
+  const [noData, setNoData] = useState("");
+
+  async function getDataPegawai() {
+    const response = await dataPegawai("");
+    let newPegawai = response.map((item: any) => {
+      return { key: item.ID, value: item.NAMA };
+    });
+
+    setPegawai(newPegawai);
+  }
+
   const { iduser, userLink, statusUser } = useLogin(
     useShallow((state: any) => ({
       iduser: state.iduser,
@@ -36,13 +68,9 @@ function Cuti() {
     }))
   );
 
-  const [riwayatcutidata, setRiwayatcutidata] = useState<any[]>([]);
-  const [datacutival, setDatacuti] = useState<any[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [isModalFilterVisible, setIsModalFilterVisible] = useState(false);
-
   const onFilterData = () => {
     setIsModalFilterVisible(true);
+    getDataPegawai();
   };
 
   const onModalFilterDataClose = () => {
@@ -50,12 +78,23 @@ function Cuti() {
   };
 
   async function getRiwayatCuti() {
-    let response = await riwayatcuti("");
+    let response = await riwayatcuti(
+      "",
+      moment(date).format("YYYY-MM-DD"),
+      moment(dateTo).format("YYYY-MM-DD"),
+      selectIDPegawai
+    );
     if (statusUser === "Umum") {
-      response = await riwayatcuti(iduser);
+      response = await riwayatcuti(
+        iduser,
+        moment(date).format("YYYY-MM-DD"),
+        moment(dateTo).format("YYYY-MM-DD"),
+        ""
+      );
     }
 
     setRiwayatcutidata(response.datacuti);
+    console.log(response.datacuti);
   }
 
   async function getDataCutiByID(idCuti = null) {
@@ -88,7 +127,7 @@ function Cuti() {
     getRiwayatCuti();
   }
 
-  const setujuCutiFunc = (idcuti = null) => {
+  const setujuCutiFunc = useCallback((idcuti = null) => {
     getDataCutiByID(idcuti);
 
     if (iduser == datacutival[0].IDDISETUJUI) {
@@ -131,9 +170,9 @@ function Cuti() {
       );
       return;
     }
-  };
+  }, []);
 
-  const TidaksetujuCutiFunc = (idcuti = null) => {
+  const TidaksetujuCutiFunc = useCallback((idcuti = null) => {
     getDataCutiByID(idcuti);
 
     if (iduser == datacutival[0].IDDISETUJUI) {
@@ -167,7 +206,6 @@ function Cuti() {
         "Tidak Diterima"
       );
       sendNotifToMe(datacutival[0].IDUSELOGIN, "tidaksetuju");
-      console.log(datacutival[0].IDUSELOGIN);
       getRiwayatCuti();
     } else {
       Alert.alert(
@@ -176,7 +214,7 @@ function Cuti() {
       );
       return;
     }
-  };
+  }, []);
 
   const hapusCutiAct = (idcuti = null) => {
     Alert.alert("Warning", "Ingin membatalkan pengajuan cuti?", [
@@ -210,14 +248,24 @@ function Cuti() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    getRiwayatCuti();
+    loadingDatas();
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);
   }, []);
 
-  useEffect(() => {
+  const loadingDatas = () => {
+    setLoadingData(true);
     getRiwayatCuti();
+    setNoData("");
+    setTimeout(() => {
+      setLoadingData(false);
+      setNoData("Data Tidak Ditemukan");
+    }, 1000);
+  };
+
+  useEffect(() => {
+    loadingDatas();
   }, []);
 
   return (
@@ -261,7 +309,6 @@ function Cuti() {
             transparent={true}
             visible={isModalFilterVisible}
             onRequestClose={() => {
-              Alert.alert("Modal has been closed.");
               onModalFilterDataClose;
             }}
           >
@@ -269,19 +316,154 @@ function Cuti() {
               <View style={styles.modalView}>
                 <View
                   style={{
-                    backgroundColor: "#3db61b",
+                    backgroundColor: "#ffffff",
                     width: "100%",
-                    alignItems: "center",
                     paddingVertical: 10,
-                    marginBottom: 10,
+                    marginBottom: 20,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
                   }}
                 >
-                  <Text style={{ color: "#ffffff" }}>Tutup</Text>
+                  <View style={{ flexDirection: "row" }}>
+                    <Text style={{ marginRight: 5 }}>
+                      <FontAwesome size={18} name="filter" color="#3db61b" />
+                    </Text>
+                    <Text style={{ color: "#686a69" }}>Filter Cuti</Text>
+                  </View>
+
+                  <TouchableOpacity
+                    style={{ flexDirection: "row" }}
+                    onPress={() => setIsModalFilterVisible(false)}
+                  >
+                    <Text style={{ marginRight: 5 }}>
+                      <FontAwesome size={18} name="times" color="#3db61b" />
+                    </Text>
+                    <Text style={{ color: "#686a69" }}>Tutup</Text>
+                  </TouchableOpacity>
                 </View>
-                <Text>Hello World!</Text>
-                <Pressable onPress={() => setIsModalFilterVisible(false)}>
-                  <Text>Hide Modal</Text>
-                </Pressable>
+                <Text
+                  style={{
+                    color: "#5e5e5e",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Rentang Tanggal
+                </Text>
+                <View
+                  style={{
+                    marginTop: 5,
+                    marginBottom: 5,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <DatePicker
+                    onChange={setDate}
+                    value={date}
+                    close={() => setShowDatePicker(false)}
+                    show={showDatePicker}
+                  />
+
+                  <DatePicker
+                    onChange={setDateTo}
+                    value={dateTo}
+                    close={() => setShowPickerToDate(false)}
+                    show={showPickerToDate}
+                  />
+
+                  <Pressable
+                    onPress={() => setShowDatePicker(true)}
+                    style={{
+                      backgroundColor: "#e4e4e454",
+                      width: "49%",
+                      padding: 15,
+                      borderRadius: 5,
+                      marginTop: 10,
+                      justifyContent: "center",
+                    }}
+                  >
+                    <TextInput
+                      placeholder={moment().format("DD MMMM YYYY")}
+                      value={moment(date).format("DD MMMM YYYY")}
+                      editable={false}
+                      style={{ fontSize: 12 }}
+                    ></TextInput>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => setShowPickerToDate(true)}
+                    style={{
+                      backgroundColor: "#e4e4e454",
+                      width: "49%",
+                      padding: 15,
+                      borderRadius: 5,
+                      marginTop: 10,
+                      justifyContent: "center",
+                    }}
+                  >
+                    <TextInput
+                      placeholder={moment().format("DD MMMM YYYY")}
+                      value={moment(dateTo).format("DD MMMM YYYY")}
+                      editable={false}
+                      style={{
+                        fontSize: 12,
+                      }}
+                    ></TextInput>
+                  </Pressable>
+                </View>
+
+                <Text
+                  style={{
+                    marginTop: 10,
+                    marginBottom: 10,
+                    color: "#5e5e5e",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Pilih Pegawai
+                </Text>
+
+                <SelectList
+                  setSelected={(val: any) => setSelectIDPegawai(val)}
+                  data={pegawai}
+                  save="key"
+                  placeholder="Pilih Pegawai"
+                  boxStyles={{
+                    borderColor: "#e4e4e454",
+                    backgroundColor: "#e4e4e454",
+                  }}
+                  inputStyles={{ color: "#5e5e5e" }}
+                  dropdownTextStyles={{ color: "#5e5e5e" }}
+                  // onSelect={() => {
+                  //   getCountDays();
+                  // }}
+                />
+
+                <TouchableOpacity
+                  style={{
+                    marginTop: 25,
+                    backgroundColor: "#3db61b",
+                    paddingHorizontal: 25,
+                    paddingVertical: 15,
+                    borderRadius: 20,
+                    alignItems: "center",
+                  }}
+                  onPress={loadingDatas}
+                >
+                  <Text
+                    style={{
+                      color: "#ffffff",
+                      fontSize: 16,
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {loading == false ? (
+                      "Filter Cuti"
+                    ) : (
+                      <ActivityIndicator size={22} color="#ffffff" />
+                    )}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
           </Modal>
@@ -296,16 +478,23 @@ function Cuti() {
             persistentScrollbar={false}
           >
             {riwayatcutidata?.length < 1 ? (
-              <ActivityIndicator
-                animating={true}
+              <View
                 style={{
                   flex: 1,
                   alignItems: "center",
                   justifyContent: "center",
-                  height: 80,
                 }}
-                size="large"
-              />
+              >
+                <ActivityIndicator
+                  animating={loadingData}
+                  style={{
+                    height: 80,
+                  }}
+                  size="large"
+                />
+
+                <Text style={{ color: "#686a69" }}>{noData}</Text>
+              </View>
             ) : (
               riwayatcutidata?.map((item) => {
                 return (
@@ -615,7 +804,7 @@ const styles = StyleSheet.create({
     //margin: 20,
     backgroundColor: "#ffffff",
     paddingBottom: 15,
-    alignItems: "center",
+    paddingHorizontal: 20,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

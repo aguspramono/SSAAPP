@@ -94,10 +94,10 @@ export const createCuti = async (IDUSER=0,TANGGALDARI=new Date(),TANGGALSAMPAI=n
     }
   };
 
-  export const riwayatcuti = async (iduser ="") => {
+  export const riwayatcuti = async (iduser ="",tanggaldari= "",tanggalsampai="",idpegawai="") => {
     try {
       const response = await axios.get(
-        `${baseUrl}riwayatcuti?id=${iduser}`,
+        `${baseUrl}riwayatcuti?id=${iduser}&tanggaldari=${tanggaldari}&tanggalsampai=${tanggalsampai}&idpegawai=${idpegawai}`,
         {
           headers: headers,
         }

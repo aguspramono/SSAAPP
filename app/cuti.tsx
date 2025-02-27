@@ -94,7 +94,7 @@ function Cuti() {
     }
 
     setRiwayatcutidata(response.datacuti);
-    console.log(response.datacuti);
+    //console.log(response.datacuti);
   }
 
   async function getDataCutiByID(idCuti = null) {
@@ -412,32 +412,34 @@ function Cuti() {
                   </Pressable>
                 </View>
 
-                <Text
-                  style={{
-                    marginTop: 10,
-                    marginBottom: 10,
-                    color: "#5e5e5e",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Pilih Pegawai
-                </Text>
-
-                <SelectList
-                  setSelected={(val: any) => setSelectIDPegawai(val)}
-                  data={pegawai}
-                  save="key"
-                  placeholder="Pilih Pegawai"
-                  boxStyles={{
-                    borderColor: "#e4e4e454",
-                    backgroundColor: "#e4e4e454",
-                  }}
-                  inputStyles={{ color: "#5e5e5e" }}
-                  dropdownTextStyles={{ color: "#5e5e5e" }}
-                  // onSelect={() => {
-                  //   getCountDays();
-                  // }}
-                />
+                {statusUser === "Umum" ? (
+                  ""
+                ) : (
+                  <View>
+                    <Text
+                      style={{
+                        marginTop: 10,
+                        marginBottom: 10,
+                        color: "#5e5e5e",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Pilih Pegawai
+                    </Text>
+                    <SelectList
+                      setSelected={(val: any) => setSelectIDPegawai(val)}
+                      data={pegawai}
+                      save="key"
+                      placeholder="Pilih Pegawai"
+                      boxStyles={{
+                        borderColor: "#e4e4e454",
+                        backgroundColor: "#e4e4e454",
+                      }}
+                      inputStyles={{ color: "#5e5e5e" }}
+                      dropdownTextStyles={{ color: "#5e5e5e" }}
+                    />
+                  </View>
+                )}
 
                 <TouchableOpacity
                   style={{

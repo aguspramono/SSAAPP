@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Pressable,
   TextInput,
+  Modal,
 } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Link } from "expo-router";
@@ -17,43 +18,90 @@ import moment from "moment";
 import { DatePicker } from "./../components/date-picker";
 import getDataAbsesi from "./../function/absensiApi";
 import { useLocalSearchParams } from "expo-router";
+import { SelectList } from "react-native-dropdown-select-list";
+import { useShallow } from "zustand/react/shallow";
+import useLogin from "./../function/store/useUserLogin";
+import { dataPegawai } from "./../function/pegawaiApi";
 
 function Filterabsensibytanggal() {
-  const { id, nama } = useLocalSearchParams();
+  //const { id, nama } = useLocalSearchParams();
   var dateY = new Date();
 
-  const [date, setDate] = useState(
-    new Date(dateY.getFullYear(), dateY.getMonth(), 1)
-  );
-  const [dateTo, setDateTo] = useState(
-    new Date(dateY.getFullYear(), dateY.getMonth() + 1, 0)
-  );
+  const [date, setDate] = useState(new Date());
+  const [dateTo, setDateTo] = useState(new Date());
+  const [noData, setNoData] = useState("");
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPickerToDate, setShowPickerToDate] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [absensi, setAbsensi] = useState<any[]>([]);
+  const [pegawai, setPegawai] = useState([]);
+  const [isModalFilterVisible, setIsModalFilterVisible] = useState(false);
+  const [selectIDPegawai, setSelectIDPegawai] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
+  const { iduser, userLink, statusUser } = useLogin(
+    useShallow((state: any) => ({
+      iduser: state.iduser,
+      userLink: state.userLink,
+      statusUser: state.statusUser,
+    }))
+  );
 
-  async function getDataAbsesiVal() {
-    const response = await getDataAbsesi(id.toString(), date, dateTo);
+  async function getDataPegawai() {
+    const response = await dataPegawai("");
+    let newPegawai = response.map((item: any) => {
+      return { key: item.ID, value: item.NAMA };
+    });
+
+    setPegawai(newPegawai);
+  }
+
+  async function getDataAbsesiVal(iduserval = "") {
+    const response = await getDataAbsesi(iduserval, date, dateTo);
     setAbsensi(response);
   }
 
+  const onFilterData = () => {
+    setIsModalFilterVisible(true);
+    getDataPegawai();
+  };
+
+  const onModalFilterDataClose = () => {
+    setIsModalFilterVisible(false);
+  };
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
+    loadingDatas();
     setTimeout(() => {
       setRefreshing(false);
-    }, 2000);
+    }, 10);
   }, []);
 
+  const loadingDatas = useCallback(() => {
+    setLoadingData(true);
+    setNoData("");
+    getDataAbsesiVal(userLink);
+    setIsModalFilterVisible(false);
+    setTimeout(() => {
+      setLoadingData(false);
+      if (absensi.length < 1) {
+        setNoData("Data Tidak Ditemukan");
+      } else {
+        setNoData("");
+      }
+    }, 10);
+  }, [getDataAbsesiVal(userLink)]);
+
   useEffect(() => {
-    getDataAbsesiVal();
-  }, [id, nama]);
+    loadingDatas();
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ flexDirection: "row", marginTop: 30 }}>
         <Link
-          href={{ pathname: "/semuaabsensi" }}
+          href={{ pathname: "/(tabs)" }}
           style={{
             padding: 15,
             marginLeft: 10,
@@ -69,15 +117,190 @@ function Filterabsensibytanggal() {
           </Text>
         </Link>
         <View style={{ padding: 15, marginTop: 4 }}>
-          <Text style={{ fontSize: 16, fontWeight: "bold" }}>
-            {" "}
-            Absensi [ {nama} ]
-          </Text>
+          <Text style={{ fontSize: 16, fontWeight: "bold" }}> Absensi</Text>
         </View>
       </View>
 
       <View style={styles.containerFluid}>
-        <View
+        <View style={{ marginTop: 30 }}>
+          <TouchableOpacity
+            style={{ flexDirection: "row" }}
+            onPress={onFilterData}
+          >
+            <Text style={{ marginRight: 5 }}>
+              <FontAwesome size={18} name="filter" color="#3db61b" />
+            </Text>
+            <Text style={{ color: "#686a69" }}>Filter</Text>
+          </TouchableOpacity>
+
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={isModalFilterVisible}
+            onRequestClose={() => {
+              onModalFilterDataClose;
+            }}
+          >
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <View
+                  style={{
+                    backgroundColor: "#ffffff",
+                    width: "100%",
+                    paddingVertical: 10,
+                    marginBottom: 20,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <View style={{ flexDirection: "row" }}>
+                    <Text style={{ marginRight: 5 }}>
+                      <FontAwesome size={18} name="filter" color="#3db61b" />
+                    </Text>
+                    <Text style={{ color: "#686a69" }}>Filter Absensi</Text>
+                  </View>
+
+                  <TouchableOpacity
+                    style={{ flexDirection: "row" }}
+                    onPress={() => setIsModalFilterVisible(false)}
+                  >
+                    <Text style={{ marginRight: 5 }}>
+                      <FontAwesome size={18} name="times" color="#3db61b" />
+                    </Text>
+                    <Text style={{ color: "#686a69" }}>Tutup</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text
+                  style={{
+                    color: "#5e5e5e",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Rentang Tanggal
+                </Text>
+                <View
+                  style={{
+                    marginTop: 5,
+                    marginBottom: 5,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <DatePicker
+                    onChange={setDate}
+                    value={date}
+                    close={() => setShowDatePicker(false)}
+                    show={showDatePicker}
+                  />
+
+                  <DatePicker
+                    onChange={setDateTo}
+                    value={dateTo}
+                    close={() => setShowPickerToDate(false)}
+                    show={showPickerToDate}
+                  />
+
+                  <Pressable
+                    onPress={() => setShowDatePicker(true)}
+                    style={{
+                      backgroundColor: "#e4e4e454",
+                      width: "49%",
+                      padding: 15,
+                      borderRadius: 5,
+                      marginTop: 10,
+                      justifyContent: "center",
+                    }}
+                  >
+                    <TextInput
+                      placeholder={moment().format("DD MMMM YYYY")}
+                      value={moment(date).format("DD MMMM YYYY")}
+                      editable={false}
+                      style={{ fontSize: 12 }}
+                    ></TextInput>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => setShowPickerToDate(true)}
+                    style={{
+                      backgroundColor: "#e4e4e454",
+                      width: "49%",
+                      padding: 15,
+                      borderRadius: 5,
+                      marginTop: 10,
+                      justifyContent: "center",
+                    }}
+                  >
+                    <TextInput
+                      placeholder={moment().format("DD MMMM YYYY")}
+                      value={moment(dateTo).format("DD MMMM YYYY")}
+                      editable={false}
+                      style={{
+                        fontSize: 12,
+                      }}
+                    ></TextInput>
+                  </Pressable>
+                </View>
+
+                {statusUser === "Umum" ? (
+                  ""
+                ) : (
+                  <View>
+                    <Text
+                      style={{
+                        marginTop: 10,
+                        marginBottom: 10,
+                        color: "#5e5e5e",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Pilih Pegawai
+                    </Text>
+                    <SelectList
+                      setSelected={(val: any) => setSelectIDPegawai(val)}
+                      data={pegawai}
+                      save="key"
+                      placeholder="Pilih Pegawai"
+                      boxStyles={{
+                        borderColor: "#e4e4e454",
+                        backgroundColor: "#e4e4e454",
+                      }}
+                      inputStyles={{ color: "#5e5e5e" }}
+                      dropdownTextStyles={{ color: "#5e5e5e" }}
+                    />
+                  </View>
+                )}
+
+                <TouchableOpacity
+                  style={{
+                    marginTop: 25,
+                    backgroundColor: "#3db61b",
+                    paddingHorizontal: 25,
+                    paddingVertical: 15,
+                    borderRadius: 20,
+                    alignItems: "center",
+                  }}
+                  onPress={() => loadingDatas()}
+                >
+                  <Text
+                    style={{
+                      color: "#ffffff",
+                      fontSize: 16,
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {loading == false ? (
+                      "Filter Absensi"
+                    ) : (
+                      <ActivityIndicator size={22} color="#ffffff" />
+                    )}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        </View>
+
+        {/* <View
           style={{
             marginTop: 5,
             marginBottom: 5,
@@ -150,7 +373,7 @@ function Filterabsensibytanggal() {
           >
             <Text style={{ fontSize: 12, color: "#fff" }}>Proses</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         <ScrollView
           style={{ marginTop: 10, marginBottom: 90 }}
@@ -162,16 +385,23 @@ function Filterabsensibytanggal() {
           persistentScrollbar={false}
         >
           {absensi?.length < 1 ? (
-            <ActivityIndicator
-              animating={true}
+            <View
               style={{
                 flex: 1,
                 alignItems: "center",
                 justifyContent: "center",
-                height: 80,
               }}
-              size="large"
-            />
+            >
+              <ActivityIndicator
+                animating={loadingData}
+                style={{
+                  height: 80,
+                }}
+                size="large"
+              />
+
+              <Text style={{ color: "#686a69" }}>{noData}</Text>
+            </View>
           ) : (
             absensi?.map((item, i) => {
               return (
@@ -263,5 +493,25 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderRadius: 10,
     fontWeight: "bold",
+  },
+  centeredView: {
+    flex: 1,
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+  },
+  modalView: {
+    //margin: 20,
+    backgroundColor: "#ffffff",
+    paddingBottom: 15,
+    paddingHorizontal: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });

@@ -136,7 +136,7 @@ function Dashboard() {
                   </View>
                 </Link>
 
-                <Link href={{ pathname: "/semuaabsensi" }}>
+                <Link href={{ pathname: "/filterabsensibytanggal" }}>
                   <View style={styles.griditem}>
                     <Image
                       style={{ width: 50, height: 50, marginBottom: 10 }}

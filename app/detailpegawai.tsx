@@ -23,6 +23,8 @@ function Detailpegawai() {
   const [refreshing, setRefreshing] = useState(false);
   const [pegawai, setPegawai] = useState<any[]>([]);
   const [absensi, setAbsensi] = useState<any[]>([]);
+  const [noData, setNoData] = useState("");
+  const [loadingData, setLoadingData] = useState(true);
 
   var dateY = new Date();
 
@@ -80,7 +82,7 @@ function Detailpegawai() {
     SetvisibleModalAbsensi(true);
     setDate(new Date(dateY.getFullYear(), dateY.getMonth(), 1));
     setDateTo(new Date(dateY.getFullYear(), dateY.getMonth() + 1, 0));
-    getDataAbsesi();
+    loadingDatas();
   }, [id, date, dateTo]);
 
   const hideAbsensi = () => {
@@ -89,9 +91,19 @@ function Detailpegawai() {
     SetvisibleModalAbsensi(false);
   };
 
+  const loadingDatas = useCallback(() => {
+    setLoadingData(true);
+    getDataAbsesi();
+    setNoData("");
+    setTimeout(() => {
+      setLoadingData(false);
+      setNoData("Data Tidak Ditemukan");
+    }, 1500);
+  }, [getDataAbsesi]);
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    getDataAbsesi();
+    loadingDatas;
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);
@@ -242,22 +254,30 @@ function Detailpegawai() {
         onRequestClose={hidePersonalInformation}
         animationType="slide"
       >
-        <TouchableOpacity
-          onPress={hidePersonalInformation}
-          style={{
-            padding: 15,
-            marginLeft: 10,
-            marginTop: 10,
-            borderWidth: 0.5,
-            width: 45,
-            borderRadius: 10,
-            borderColor: "#d1d1d1",
-          }}
-        >
-          <Text style={{}}>
-            <FontAwesome size={14} name="chevron-left" color="#3db61b" />
-          </Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: "row" }}>
+          <TouchableOpacity
+            onPress={hidePersonalInformation}
+            style={{
+              padding: 15,
+              marginLeft: 10,
+              marginTop: 10,
+              borderWidth: 0.5,
+              width: 45,
+              borderRadius: 10,
+              borderColor: "#d1d1d1",
+            }}
+          >
+            <Text style={{}}>
+              <FontAwesome size={14} name="chevron-left" color="#3db61b" />
+            </Text>
+          </TouchableOpacity>
+          <View style={{ padding: 15, marginTop: 4 }}>
+            <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+              {" "}
+              Informasi Pribadi
+            </Text>
+          </View>
+        </View>
 
         <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
           {pegawai &&
@@ -472,22 +492,28 @@ function Detailpegawai() {
         onRequestClose={hideAbsensi}
         animationType="slide"
       >
-        <TouchableOpacity
-          onPress={hideAbsensi}
-          style={{
-            padding: 15,
-            marginLeft: 10,
-            marginTop: 10,
-            borderWidth: 0.5,
-            width: 45,
-            borderRadius: 10,
-            borderColor: "#d1d1d1",
-          }}
-        >
-          <Text style={{}}>
-            <FontAwesome size={14} name="chevron-left" color="#3db61b" />
-          </Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: "row" }}>
+          <TouchableOpacity
+            onPress={hideAbsensi}
+            style={{
+              padding: 15,
+              marginLeft: 10,
+              marginTop: 10,
+              borderWidth: 0.5,
+              width: 45,
+              borderRadius: 10,
+              borderColor: "#d1d1d1",
+            }}
+          >
+            <Text style={{}}>
+              <FontAwesome size={14} name="chevron-left" color="#3db61b" />
+            </Text>
+          </TouchableOpacity>
+
+          <View style={{ padding: 15, marginTop: 4 }}>
+            <Text style={{ fontSize: 16, fontWeight: "bold" }}>Absensi</Text>
+          </View>
+        </View>
 
         <View
           style={{
@@ -551,7 +577,7 @@ function Detailpegawai() {
           </Pressable>
 
           <TouchableOpacity
-            onPress={getDataAbsesi}
+            onPress={loadingDatas}
             style={{
               marginTop: 10,
               backgroundColor: "#3db61b",
@@ -573,16 +599,23 @@ function Detailpegawai() {
           persistentScrollbar={false}
         >
           {absensi && absensi.length < 1 ? (
-            <ActivityIndicator
-              animating={true}
+            <View
               style={{
                 flex: 1,
                 alignItems: "center",
                 justifyContent: "center",
-                height: 80,
               }}
-              size="large"
-            />
+            >
+              <ActivityIndicator
+                animating={loadingData}
+                style={{
+                  height: 80,
+                }}
+                size="large"
+              />
+
+              <Text style={{ color: "#686a69" }}>{noData}</Text>
+            </View>
           ) : (
             absensi &&
             absensi.map((item, i) => {

@@ -16,6 +16,7 @@ function Pegawai() {
   const [pegawai, setPegawai] = useState<any[]>([]);
   const [namaPegawai, setNamaPegawai] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [noData, setNoData] = useState("");
 
   async function getDataPegawai() {
     const response = await dataPegawai(namaPegawai);
@@ -29,6 +30,14 @@ function Pegawai() {
       setRefreshing(false);
     }, 2000);
   }, []);
+
+  const loadingDatas = useCallback(() => {
+    getDataPegawai;
+    setNoData("");
+    setTimeout(() => {
+      setNoData("Data Tidak Ditemukan");
+    }, 1500);
+  }, [getDataPegawai]);
 
   useEffect(() => {
     getDataPegawai();

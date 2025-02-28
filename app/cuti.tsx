@@ -508,9 +508,13 @@ function Cuti() {
                         justifyContent: "space-between",
                       }}
                     >
-                      <Text style={{ fontWeight: "bold", color: "#686a69" }}>
-                        {item.NAMA}
-                      </Text>
+                      {statusUser === "Umum" ? (
+                        ""
+                      ) : (
+                        <Text style={{ fontWeight: "bold", color: "#686a69" }}>
+                          {item.NAMA}
+                        </Text>
+                      )}
 
                       <Text style={{ fontWeight: "bold", color: "#686a69" }}>
                         {item.JUMLAHCUTI} Hari

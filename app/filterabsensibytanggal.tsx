@@ -17,14 +17,12 @@ import React, { useState, useCallback, useEffect } from "react";
 import moment from "moment";
 import { DatePicker } from "./../components/date-picker";
 import getDataAbsesi from "./../function/absensiApi";
-import { useLocalSearchParams } from "expo-router";
 import { SelectList } from "react-native-dropdown-select-list";
 import { useShallow } from "zustand/react/shallow";
 import useLogin from "./../function/store/useUserLogin";
 import { dataPegawai } from "./../function/pegawaiApi";
 
 function Filterabsensibytanggal() {
-  //const { id, nama } = useLocalSearchParams();
   var dateY = new Date();
 
   const [date, setDate] = useState(new Date());
@@ -57,8 +55,13 @@ function Filterabsensibytanggal() {
     setPegawai(newPegawai);
   }
 
-  async function getDataAbsesiVal(iduserval = "") {
-    const response = await getDataAbsesi(iduserval, date, dateTo);
+  async function getDataAbsesiVal() {
+    let response = await getDataAbsesi(selectIDPegawai, date, dateTo);
+    if (statusUser === "Umum") {
+      response = await getDataAbsesi(userLink, date, dateTo);
+    }
+    //console.log(response);
+    //console.log(new Date());
     setAbsensi(response);
   }
 
@@ -73,29 +76,29 @@ function Filterabsensibytanggal() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadingDatas();
+    getDataAbsesiVal();
     setTimeout(() => {
       setRefreshing(false);
-    }, 10);
-  }, []);
+    }, 1000);
+  }, [getDataAbsesiVal, date, dateTo]);
 
   const loadingDatas = useCallback(() => {
     setLoadingData(true);
+    setLoading(true);
     setNoData("");
-    getDataAbsesiVal(userLink);
-    setIsModalFilterVisible(false);
+    getDataAbsesiVal();
+    setSelectIDPegawai("");
     setTimeout(() => {
       setLoadingData(false);
-      if (absensi.length < 1) {
-        setNoData("Data Tidak Ditemukan");
-      } else {
-        setNoData("");
-      }
-    }, 10);
-  }, [getDataAbsesiVal(userLink)]);
+      setLoading(false);
+      setNoData("Data Tidak Ditemukan");
+      setIsModalFilterVisible(false);
+    }, 1500);
+  }, [getDataAbsesiVal, date, dateTo]);
 
   useEffect(() => {
     loadingDatas();
+    //console.log(loadingData);
   }, []);
   return (
     <SafeAreaView style={styles.container}>
@@ -300,81 +303,6 @@ function Filterabsensibytanggal() {
           </Modal>
         </View>
 
-        {/* <View
-          style={{
-            marginTop: 5,
-            marginBottom: 5,
-            flexDirection: "row",
-            justifyContent: "space-between",
-          }}
-        >
-          <DatePicker
-            onChange={setDate}
-            value={date}
-            close={() => setShowDatePicker(false)}
-            show={showDatePicker}
-          />
-
-          <DatePicker
-            onChange={setDateTo}
-            value={dateTo}
-            close={() => setShowPickerToDate(false)}
-            show={showPickerToDate}
-          />
-
-          <Pressable
-            onPress={() => setShowDatePicker(true)}
-            style={{
-              backgroundColor: "#ffffff",
-              width: 150,
-              paddingLeft: 10,
-              borderRadius: 5,
-              marginTop: 10,
-              justifyContent: "center",
-            }}
-          >
-            <TextInput
-              placeholder={moment().format("DD MMMM YYYY")}
-              value={moment(date).format("DD MMMM YYYY")}
-              editable={false}
-              style={{ fontSize: 12 }}
-            ></TextInput>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setShowPickerToDate(true)}
-            style={{
-              backgroundColor: "#ffffff",
-              width: 150,
-              paddingLeft: 10,
-              borderRadius: 5,
-              marginTop: 10,
-              justifyContent: "center",
-            }}
-          >
-            <TextInput
-              placeholder={moment().format("DD MMMM YYYY")}
-              value={moment(dateTo).format("DD MMMM YYYY")}
-              editable={false}
-              style={{
-                fontSize: 12,
-              }}
-            ></TextInput>
-          </Pressable>
-
-          <TouchableOpacity
-            onPress={getDataAbsesiVal}
-            style={{
-              marginTop: 10,
-              backgroundColor: "#3db61b",
-              padding: 10,
-              borderRadius: 5,
-            }}
-          >
-            <Text style={{ fontSize: 12, color: "#fff" }}>Proses</Text>
-          </TouchableOpacity>
-        </View> */}
-
         <ScrollView
           style={{ marginTop: 10, marginBottom: 90 }}
           contentContainerStyle={{ flexGrow: 1 }}
@@ -407,9 +335,25 @@ function Filterabsensibytanggal() {
               return (
                 <React.Fragment key={i}>
                   <View style={styles.listWrapAbs}>
-                    <Text style={{ fontWeight: "bold", color: "#686a69" }}>
-                      {item.tanggal}
-                    </Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      {statusUser === "Umum" ? (
+                        ""
+                      ) : (
+                        <Text style={{ fontWeight: "bold", color: "#686a69" }}>
+                          {item.NAMA}
+                        </Text>
+                      )}
+
+                      <Text style={{ fontWeight: "bold", color: "#686a69" }}>
+                        {item.tanggal}
+                      </Text>
+                    </View>
+
                     <View
                       style={{
                         flexDirection: "row",

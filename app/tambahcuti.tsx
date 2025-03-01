@@ -239,14 +239,14 @@ function Tambahcuti() {
     setAtasan(NewAtasan);
   }
 
-  const buttonPengajuanCuti = () => {
+  const buttonPengajuanCuti = useCallback(() => {
     checkDataCuti();
     pengajuanCuti();
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
     }, 2000);
-  };
+  }, [checkDataCuti, pengajuanCuti]);
 
   useEffect(() => {
     getDataAtasan();

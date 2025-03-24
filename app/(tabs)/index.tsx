@@ -160,7 +160,7 @@ function Dashboard() {
                   </View>
                 </Link>
 
-                <Link href={{ pathname: "/" }}>
+                <Link href={{ pathname: "/telat" }}>
                   <View style={styles.griditem}>
                     <Image
                       style={{ width: 50, height: 50, marginBottom: 10 }}

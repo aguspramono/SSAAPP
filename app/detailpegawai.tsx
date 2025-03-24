@@ -12,7 +12,7 @@ import {
   Pressable,
   RefreshControl,
 } from "react-native";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Link } from "expo-router";
 import axios from "axios";
@@ -76,8 +76,6 @@ function Detailpegawai() {
     }
   };
 
-  getDataDetail();
-
   const showAbsensi = useCallback(() => {
     SetvisibleModalAbsensi(true);
     setDate(new Date(dateY.getFullYear(), dateY.getMonth(), 1));
@@ -109,6 +107,10 @@ function Detailpegawai() {
     }, 2000);
   }, [id, date, dateTo]);
 
+  useEffect(() => {
+    getDataDetail();
+    //console.log(loadingData);
+  }, []);
   return (
     <View style={styles.containerfluid}>
       <View style={styles.container}>

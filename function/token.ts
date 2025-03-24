@@ -56,9 +56,3 @@ export const deleteToken = async (id=null) => {
 
 
 
-
-// export default getDataLogin;
-
-
-
-

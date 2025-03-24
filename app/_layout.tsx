@@ -13,7 +13,10 @@ function Layout() {
       />
       <Stack.Screen name="semuaabsensi" options={{ headerShown: false }} />
       <Stack.Screen name="cuti" options={{ headerShown: false }} />
+      <Stack.Screen name="telat" options={{ headerShown: false }} />
       <Stack.Screen name="tambahcuti" options={{ headerShown: false }} />
+      <Stack.Screen name="tambahtelat" options={{ headerShown: false }} />
+      <Stack.Screen name="cameralayout" options={{ title: "Camera" }} />
     </Stack>
   );
 }

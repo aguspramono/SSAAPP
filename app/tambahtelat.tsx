@@ -8,25 +8,25 @@ import {
   Pressable,
   TextInput,
   Alert,
+  Button,
 } from "react-native";
-``;
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import React, { useState, useCallback, useEffect } from "react";
 import moment from "moment";
 import { SelectList } from "react-native-dropdown-select-list";
-import { DatePicker } from "./../components/date-picker";
-import { getAtasan } from "./../function/atasan";
-import { liburNasional } from "./../function/liburNasional";
+import { DatePicker } from "../components/date-picker";
+import { getAtasan } from "../function/atasan";
+import { liburNasional } from "../function/liburNasional";
 import { useShallow } from "zustand/react/shallow";
-import useLogin from "./../function/store/useUserLogin";
-import { getDataDetail } from "./../function/pegawaiApi";
+import useLogin from "../function/store/useUserLogin";
+import { getDataDetail } from "../function/pegawaiApi";
 import {
   createCuti,
   notiftome,
   notiftoatasan,
   cekcuti,
-} from "./../function/cuti";
+} from "../function/cuti";
 
 function Tambahcuti() {
   const [atasan, setAtasan] = useState([]);
@@ -35,7 +35,6 @@ function Tambahcuti() {
   const [date, setDate] = useState(new Date());
   const [dateTo, setDateTo] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showPickerToDate, setShowPickerToDate] = useState(false);
   const [userterkait, setUserterkait] = useState<any[]>([]);
 
   const [jumlahHari, setJumlahHari] = useState(1);
@@ -258,7 +257,7 @@ function Tambahcuti() {
     <SafeAreaView style={styles.container}>
       <View style={{ flexDirection: "row", marginTop: 30 }}>
         <Link
-          href={{ pathname: "/cuti" }}
+          href={{ pathname: "/telat" }}
           style={{
             padding: 15,
             marginLeft: 10,
@@ -274,7 +273,9 @@ function Tambahcuti() {
           </Text>
         </Link>
         <View style={{ padding: 15, marginTop: 4 }}>
-          <Text style={{ fontSize: 16, fontWeight: "bold" }}> Tambah Cuti</Text>
+          <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+            Tambah Izin Telat
+          </Text>
         </View>
       </View>
 
@@ -291,7 +292,7 @@ function Tambahcuti() {
               fontWeight: "bold",
             }}
           >
-            Periode Cuti
+            Tanggal
           </Text>
           <View
             style={{
@@ -307,19 +308,12 @@ function Tambahcuti() {
               show={showDatePicker}
             />
 
-            <DatePicker
-              onChange={setDateTo}
-              value={dateTo}
-              close={() => setShowPickerToDate(false)}
-              show={showPickerToDate}
-            />
-
             <Pressable
               onPress={() => setShowDatePicker(true)}
               style={{
                 backgroundColor: "#ffffff",
-                width: 180,
-                paddingVertical: 10,
+                width: "100%",
+                paddingVertical: 15,
                 paddingHorizontal: 10,
                 borderRadius: 10,
               }}
@@ -327,25 +321,6 @@ function Tambahcuti() {
               <TextInput
                 placeholder={moment().format("DD MMMM YYYY")}
                 value={moment(date).format("DD MMMM YYYY")}
-                editable={false}
-                style={{ color: "#949393" }}
-                onContentSizeChange={getCountDays}
-              ></TextInput>
-            </Pressable>
-
-            <Pressable
-              onPress={() => setShowPickerToDate(true)}
-              style={{
-                backgroundColor: "#ffffff",
-                width: 180,
-                paddingVertical: 10,
-                paddingHorizontal: 10,
-                borderRadius: 10,
-              }}
-            >
-              <TextInput
-                placeholder={moment().format("DD MMMM YYYY")}
-                value={moment(dateTo).format("DD MMMM YYYY")}
                 editable={false}
                 style={{ color: "#949393" }}
                 onContentSizeChange={getCountDays}
@@ -361,14 +336,14 @@ function Tambahcuti() {
               fontWeight: "bold",
             }}
           >
-            Alasan Cuti
+            Alasan Telat
           </Text>
           <TextInput
             style={[
               styles.input,
               { marginBottom: 10, color: "#949393", height: 150 },
             ]}
-            placeholder="Alasan Cuti"
+            placeholder="Alasan Telat"
             multiline={true}
             numberOfLines={10}
             value={alasanCuti}
@@ -427,56 +402,12 @@ function Tambahcuti() {
             }}
           />
 
-          <Text
-            style={{
-              marginBottom: 5,
-              marginTop: 10,
-              color: "#5e5e5e",
-              fontWeight: "bold",
-            }}
+          <TouchableOpacity
+            onPress={() => router.navigate("/cameralayout")}
+            style={{ marginTop: 20 }}
           >
-            Jumlah Hari
-          </Text>
-          <TextInput
-            style={[styles.input, { color: "#949393" }]}
-            placeholder="Jumlah Hari"
-            value={jumlahHari.toString()}
-            editable={false}
-          />
-          <Text
-            style={{
-              fontSize: 10,
-              marginTop: 5,
-              color: "#5e5e5e",
-              fontWeight: "bold",
-            }}
-          >
-            Hari libur yang tidak dihitung :
-          </Text>
-          {hariLibur?.length < 1 ? (
-            <Text
-              style={{
-                fontSize: 10,
-                color: "#5e5e5e",
-              }}
-            >
-              Tidak ada hari libur dalam kalender yang dipilih
-            </Text>
-          ) : (
-            hariLibur?.map((item, i) => {
-              return (
-                <Text
-                  style={{
-                    fontSize: 10,
-                    color: "#5e5e5e",
-                  }}
-                  key={i}
-                >
-                  {i + 1 + ". " + item}
-                </Text>
-              );
-            })
-          )}
+            <Text>Buka Kamera</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={{
@@ -497,7 +428,7 @@ function Tambahcuti() {
               }}
             >
               {loading == false ? (
-                "Ajukan Cuti"
+                "Ajukan Izin Telat"
               ) : (
                 <ActivityIndicator size={22} color="#ffffff" />
               )}
